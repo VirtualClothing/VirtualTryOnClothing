@@ -1,0 +1,75 @@
+#IMPORTS
+import os # operating system
+import numpy as np #imports math functions
+import cv2 #image manipulation
+from glob import glob #returns all file paths that match a specific pattern
+# Importing Image class from PIL module
+from PIL import Image
+
+# Need to download video and split them into frames. Use loop to open them
+def create_dir(path): # Checks to see if directory given exists, if not makes directory
+    try:
+        if not os.path.exists: os.makedirs(path)
+    except OSError:
+        print(f"ERROR: creating directory with name {path}")
+
+def save_frame(video_path, save_dir, gap=1): 
+    name = video_path.split("/")[-1].split(".")[0] #getting the name betw the last / and .
+    save_path = os.path.join(save_dir, name) #joins the save directory and video file name to make path to that file
+    create_dir(save_path)
+
+    #split frames
+    cap = cv2.VideoCapture(video_path) #the video itself
+    idx = 0 #index, variable for loop
+
+    while True:
+        ret, frame = cap.read() #returns a touple, 
+
+        if ret == False: #if its at the end of the video it stops
+            cap.release()
+            break
+
+        if idx == 0: #Doing this for first frame, writes an image for that frame
+            cv2.imwrite(f"{save_path}/{idx}.png", frame)
+        else:
+            if idx % gap == 0:
+                cv2.imwrite(f"{save_path}/{idx}.png", frame)
+
+        idx += 1
+
+def CropImage(InputPath):
+    # Opens a image in RGB mode
+    im = Image.open(InputPath)
+
+    # Size of the image in pixels (size of original image)
+    # (This is not mandatory)
+    width, height = im.size
+    
+    # Setting the points for cropped image
+    left = width / 2 - 540
+    top = height / 2 - 540
+    right = width / 2 + 540
+    bottom = height / 2 + 540
+    
+    # Cropped image of above dimension
+    # (It will not change original image)
+    im1 = im.crop((left, top, right, bottom))
+
+    #saves the image
+    return im1
+
+
+
+if __name__ == "__main__": #conditional block, allows you to execute code when the file runas as a script
+    video_paths = glob(r"C:\Users\robin\Documents\Octopus\InputVideo\input01.MOV")
+    save_dir = glob(r"C:\Users\robin\Documents\Octopus\UncroppedFrames") #directory frames are saved to 
+    for path in video_paths:
+        save_frame(path[0], save_dir[0], gap=1)
+
+    CroppedPaths = glob(r"C:\Users\robin\Documents\Octopus\CroppedFrames")
+    UncroppedPaths = glob(r"C:\Users\robin\Documents\Octopus\UncroppedFrames\*")
+    i = 0
+    for file in UncroppedPaths:
+        CropImage(file).save(os.path.join(CroppedPaths,i))
+        print("wrote cropped image")
+        i += 1
